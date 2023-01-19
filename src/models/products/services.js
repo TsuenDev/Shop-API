@@ -12,8 +12,8 @@ const { ObjectId } = require('mongodb'),
     },
     create = async () => {
         const collection = await Database(COLLECTION);
-        let result = collection.insertOne(product);
-        return result.insertedId();
+        let result = await collection.insertOne(product);
+        return result.insertedId;
     }
 
 module.exports.ProductsService = {

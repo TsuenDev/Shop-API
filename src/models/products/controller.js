@@ -1,35 +1,46 @@
-const { ProductsService } = require('./services'),
-    debug = require('debug');
+const createError = require('http-errors'),
+    debug = require('debug')('app:module-products-controller'),
+
+    { ProductsService } = require('./services'),
+    { Response } = require('../../common/response');
 
 module.exports.ProductsController = {
     getProducts: async (req, res) => {
         try {
             let products = await ProductsService.getAll();
-            res.json(products);
+            Response.success(res, 200, 'Products List', products);
         } catch (error) {
             debug(error);
-            res.status(500).json({ message: 'Internal server error' });
+            Response.error(res);
         }
     },
     getProduct: async (req, res) => {
         try {
             const { params: { id }} = req;
             let product = await ProductsService.getById(id);
-            res.json(product);
+            if(!product){
+                Response.error(res, new createError.NotFound());
+            }else{
+                Response.success(res, 200, `Product ${id}`, product);
+            }
 
         } catch (error) {
             debug(error);
-            res.status(500).json({ message: 'Internal server error' });
+            Response.error(res);
         }
     },
     createProduct: async (req, res) => {
         try {
             const { body } = req;
-            const insertedId = await ProductsService.create(body);
-            res.json(insertedId);
+            if(!body || Object.keys(body).length === 0){
+                Response.error(res, new createError.BadRequest());
+            }else{
+                const insertedId = await ProductsService.create(body);
+                Response.success(res, 201, `Product inserted`, insertedId);
+            }
         } catch (error) {
             debug(error);
-            res.status(500).json({ message: 'Internal server error' });
+            Response.error(res);
         }
     }
 
